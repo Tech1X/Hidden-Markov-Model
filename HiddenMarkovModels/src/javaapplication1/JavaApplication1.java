@@ -37,10 +37,12 @@ public class JavaApplication1 {
             hmm.forwardAlgo(n);
         
         }
-        hmm.showlikelihoodMatrix();
         
-         hmm.veterbialgo1();
-        hmm.printtest();
+        hmm.showRecordHoler3D();
+        hmm.showStateProbabiltyMatrix();
+        hmm.veterbiAlgo();
+        hmm.showBackPointerMatrix();
+        hmm.showSequenceOfStates();
        
         
         

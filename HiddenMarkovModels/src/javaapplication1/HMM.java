@@ -23,8 +23,7 @@ import java.util.Arrays;
  */
 
 public class HMM {
-    int RS = 0;
-    int count=0;
+    int BP = 0;
     int numOfObservations = 3; //f 
     String[] observations = new String[] {"3","1","3"}; //f
     
@@ -34,10 +33,6 @@ public class HMM {
     int numOfStates = 4; //f
     String[] statesName = new String[] {"Start","End","Hot","Cold"}; //f
     
-    
-//    double[] emissionProMatForHot = new double[] {.2,.4,.4 };
-//    double[] emissionProMatForCold = new double[] {.5,.4,.1 };
-//    //OR
     
     //f
     double[][] emissionProMat = new double[][]{
@@ -54,7 +49,8 @@ public class HMM {
   { 0 , 0.1 , 0.6 , 0.3 }, //H
   { 0 , 0.1 , 0.4 , 0.5 }  //C
 };
-     int[][] backpointer = new int[][]{
+ 
+    int[][] backpointer = new int[][]{
   //3    1     3  
   { 0 ,  0  ,  0 },//S
   { 0 ,  0  ,  0 },//E
@@ -62,7 +58,7 @@ public class HMM {
   { 0 ,  0  ,  0 },//C
 };
     
-    double[][] probabiltyMatrix = new double[][]{
+    double[][] stateProbabiltyMatrix = new double[][]{
   //S    E     H    C
   { 0 ,  0  ,  0 ,  0},
   { 0 ,  0  ,  0 ,  0}, 
@@ -74,242 +70,179 @@ public class HMM {
    
   void forwardAlgo(String input){
     
-    initialize3DArray();
+    initializeRecoldHoler3D();
     for(int transitionNo = 0; transitionNo < numOfObservations; transitionNo++){
-        System.out.println("transitionNo = "+(transitionNo+1));
+  //      System.out.println("transitionNo = "+(transitionNo+1));
         
-        for(int previousState = 0; previousState < numOfStates; previousState++){
-            System.out.println("From "+ statesName[previousState]);
+        for(int currentState = 0; currentState < numOfStates; currentState++){
+    //        System.out.println("From "+ statesName[currentState]);
             
             for(int nextState = 0; nextState < numOfStates; nextState++){
    
                 if(transitionNo==0&&input!=""){
                     int Startindex = Arrays.asList(statesName).indexOf(input);
-                    RS = Startindex;       
-                    if(Startindex == previousState){
-                           recordHolder3D[transitionNo][previousState][nextState] = 
-                           transitionProMat[previousState][nextState] * emissionProMat[nextState][Arrays.asList(emmissionName).indexOf(observations[transitionNo])];
+                    BP = Startindex;       
+                    if(Startindex == currentState){
+                           recordHolder3D[transitionNo][currentState][nextState] = 
+                           transitionProMat[currentState][nextState] * emissionProMat[nextState][Arrays.asList(emmissionName).indexOf(observations[transitionNo])];
                     }
                 }
                 else if(transitionNo==0&&input==""){
-                           recordHolder3D[transitionNo][previousState][nextState] = 
-                           transitionProMat[previousState][nextState] * emissionProMat[nextState][Arrays.asList(emmissionName).indexOf(observations[transitionNo])];  
+                           recordHolder3D[transitionNo][currentState][nextState] = 
+                           transitionProMat[currentState][nextState] * emissionProMat[nextState][Arrays.asList(emmissionName).indexOf(observations[transitionNo])];  
                 }        
                 
                 else if(transitionNo>0) {
-                    recordHolder3D[transitionNo][previousState][nextState] = 
-                    (transitionProMat[previousState][nextState] * emissionProMat[nextState][Arrays.asList(emmissionName).indexOf(observations[transitionNo])])
-                    *(probabiltyMatrix[transitionNo-1][previousState]);
+                    recordHolder3D[transitionNo][currentState][nextState] = 
+                    (transitionProMat[currentState][nextState] * emissionProMat[nextState][Arrays.asList(emmissionName).indexOf(observations[transitionNo])])
+                    *(stateProbabiltyMatrix[transitionNo-1][currentState]);
                 }
        
-                System.out.println(""+recordHolder3D[transitionNo][previousState][nextState]);
+      //          System.out.println(""+recordHolder3D[transitionNo][currentState][nextState]);
             }
-    //   break;        
         }
         for(int i =0;i<numOfStates; i++){
             double sum1 = 0;
             for(int j =0;j<numOfStates; j++){
                 sum1 = sum1 + recordHolder3D[transitionNo][j][i];
             }
-            probabiltyMatrix[transitionNo][i] = sum1;
-            System.out.println("PM = "+probabiltyMatrix[transitionNo][i]);
+            stateProbabiltyMatrix[transitionNo][i] = sum1;
+        //    System.out.println("PM = "+stateProbabiltyMatrix[transitionNo][i]);
         }
-       //break;
     }
-      //System.out.println("count = "+count);
-      count = 0;
-      
       
   }
-  double value=0;
-  
-   double arrays[][] = new double[numOfStates][numOfStates];
-  
-  void veterbialgo(){
-    for(int transitionNo =0 ; transitionNo <numOfObservations; transitionNo++){
-        initialize2DArray();
-        if(transitionNo==0){
-            int previousState=0;
-            for(int nextState = 0; nextState < numOfStates; nextState++){       
-               value= recordHolder3D[transitionNo][previousState][nextState];
-               arrays[previousState][nextState]=value;
-            }
-        }
-        else{
-            for(int previousState = 0; previousState < numOfStates; previousState++){
-           
-                for(int nextState = 0; nextState < numOfStates; nextState++){       
-                value= recordHolder3D[transitionNo][nextState][previousState];
-                arrays[previousState][nextState]=value;
-			     
-                }
-			
-           
-            }
-        }
-        findmax(arrays,transitionNo,numOfStates);
-   
-    }
-	  
-  }
   
   
-  void findmax(double[][] arr,int transitionNo,int numOfStates){
-    int row = 0; 
-    int column = 0; 
-    double maxValue = arr[0][0]; 
-
-    
-        for (int i = 0; i < numOfStates; i++)
-        {
-            for (int j = 0; j < numOfStates; j++)
-            {
-                    if (arr[i][j] > maxValue)
-                    {
-                             row = i;  
-                             column = j; 
-                             maxValue = arr[i][j];
-                    }
-            }
-        }
-        
-  backpointer[row][transitionNo]=1;	
-  
-  }
-  
-  void veterbialgo1(){
-    initialize2DArray();
+  double transitionsProbabilityMatrix[][] = new double[numOfStates][numOfStates];
+      
+  void veterbiAlgo(){
+      double value=0;
+      initializeTransitionsProbabilityMatrix();
+      
       for(int transitionNo =0 ; transitionNo <numOfObservations; transitionNo++){
-        if(transitionNo==0){
-            //int previousState=0;  //generalize here
-            for(int nextState = 0; nextState < numOfStates; nextState++){       
-               value= recordHolder3D[transitionNo][RS][nextState];
-               arrays[RS][nextState]=value;
-            }
-        }
-        else{
-            //for(int previousState = RS; previousState < numOfStates; previousState++){
-           
-                for(int nextState = 0; nextState < numOfStates; nextState++){       
-                value= recordHolder3D[transitionNo][RS][nextState];
-                arrays[RS][nextState]=value;
-			     
-                }
-			
-           
-            
-        }
-        findmax1(arrays,transitionNo,numOfStates);
-   
-    }
-	  
+          if(transitionNo==0){
+             for(int nextState = 0; nextState < numOfStates; nextState++){       
+               value= recordHolder3D[transitionNo][BP][nextState];
+               transitionsProbabilityMatrix[BP][nextState]=value;
+             }
+          }
+          else{
+              for(int nextState = 0; nextState < numOfStates; nextState++){       
+                 value= recordHolder3D[transitionNo][BP][nextState];
+                 transitionsProbabilityMatrix[BP][nextState]=value;			     
+              }
+          }
+     
+          findMaxTransition(transitionNo);
+     }
   }
   
-  void findmax1(double[][] arr,int transitionNo,int numOfStates){
-    //int row = 0; 
+  void findMaxTransition(int transitionNo){
     int column = 0; 
-    double maxValue = arr[RS][0]; 
-
-    
-            for (int j = 0; j < numOfStates; j++)
-            {
-                    if (arr[RS][j] > maxValue)
-                    {
-                           //  row = i;  
-                             column = j; 
-                             maxValue = arr[RS][j];
-                    }
+    double maxValue = transitionsProbabilityMatrix[BP][0]; 
+            for (int j = 0; j < numOfStates; j++){
+                if (transitionsProbabilityMatrix[BP][j] > maxValue){
+                    column = j; 
+                    maxValue = transitionsProbabilityMatrix[BP][j];
+                 }
             }
         
-    
-    
-    
-    
-	
   backpointer[column][transitionNo]=1;
-  RS = column;
-  
+  BP = column;
   }
-  
-    
-    
-    
-    
 	
-   void initialize2DArray(){
-      
-        
-        for(int previousState = 0; previousState < numOfStates; previousState++){
-                
-            for(int nextState = 0; nextState <numOfStates ; nextState++){       
-              
-                arrays[previousState][nextState] = 0;
-                
-            }
-        }
-   
-      
-      //System.err.println("count = "+count);
+  
+  
+  void showStateProbabiltyMatrix(){
+      System.out.println("\nSTATE PROBABILITY MATRIX");
+      for(int i = 0; i<numOfStates; i++){
+          for(int j = 0; j<numOfObservations; j++){
+             System.out.print(" "+stateProbabiltyMatrix[j][i]+"  ");
+          }
+          System.out.println("");
+      }
   }
-    void printtest(){
-	   
-      for(int i = 0; i<4; i++){
-          for(int j = 0; j<3; j++){
+  
+  
+   
+    void showBackPointerMatrix(){
+        
+      System.out.println("\nBACK POINTER MATRIX");	   
+      for(int i = 0; i<numOfStates; i++){
+          for(int j = 0; j<numOfObservations; j++){
              System.out.print(" "+backpointer[i][j]+"  ");
           }
           System.out.println("");
       }
   }
-   
+    
+    void showSequenceOfStates(){
+      System.out.println("\nPREDICTED SEQUENCE OF STATES FOR GIVEN OBSERVATIONS");  
+      for(int i = 0; i<numOfObservations; i++){
+          for(int j = 0; j<numOfStates; j++){
+            if(backpointer[j][i]==1){
+              System.out.print(statesName[j]+", ");  
+              
+            }              
+          }
+      }  
+    }
   
-  void showOutputOfForwardAlgo(){
+  void showRecordHoler3D(){
       
-    //  initialize3DArray();
+      System.out.println("\nRECORD HOLDER3D");
       for(int transitionNo = 0; transitionNo < numOfObservations; transitionNo++){
-        System.out.println("transitionNo = "+(transitionNo+1));
-          
-        for(int previousState = 0; previousState < numOfStates; previousState++){
-            System.out.println("From "+ statesName[previousState]);
+        System.out.println("TransitionNo = "+(transitionNo+1));
+        
+        for(int currentState = 0; currentState < numOfStates; currentState++){
+            //System.out.println("From "+ statesName[previousState]+"\n");
                 
             for(int nextState = 0; nextState < numOfStates; nextState++){       
-               System.out.println(""+recordHolder3D[transitionNo][previousState][nextState]);
-               count++;
+               System.out.print(""+recordHolder3D[transitionNo][nextState][currentState]+"  ");
             }
+            System.out.println("");
         }
-        System.out.println("count = "+count);
-   
-       //break;
+          System.out.println("");
       }
-        System.out.println("count = "+count);
-   
       
   }
   
-  void initialize3DArray(){
+  
+  void initializeTransitionsProbabilityMatrix(){
+        
+        for(int previousState = 0; previousState < numOfStates; previousState++){
+                
+            for(int nextState = 0; nextState <numOfStates ; nextState++){       
+              
+                transitionsProbabilityMatrix[previousState][nextState] = 0;
+                
+            }
+        }
+   
+  }
+  
+  void initializeRecoldHoler3D(){
       for(int transitionNo = 0; transitionNo < numOfObservations; transitionNo++){
         
         for(int previousState = 0; previousState < numOfStates; previousState++){
                 
             for(int nextState = 0; nextState < numOfStates; nextState++){       
-              
                 recordHolder3D[transitionNo][previousState][nextState] = 0.0;
-                count++;
             }
         }
    
       }
-      //System.err.println("count = "+count);
   }
   
-  void showlikelihoodMatrix(){
-      System.out.println("");
-      for(int i = 0; i<3; i++){
-          for(int j = 0; j<4; j++){
-             System.out.print(" "+probabiltyMatrix[i][j]+"  ");
-          }
-          System.out.println("");
-      }
-  }
+  
+  
+  
+  
+  
+  
+  
+  //EXTRA NOT USED BELOW
   
   void propabilityOfEachTransition(){
       for(int transitionNo = 0; transitionNo < numOfObservations; transitionNo++){
@@ -325,6 +258,25 @@ public class HMM {
         }
    
       }
+  }
+  
+  
+  
+  void showOutputOfForwardAlgo(){
+      
+    //  initialize3DArray();
+      for(int transitionNo = 0; transitionNo < numOfObservations; transitionNo++){
+        System.out.println("transitionNo = "+(transitionNo+1));
+          
+        for(int previousState = 0; previousState < numOfStates; previousState++){
+            System.out.println("From "+ statesName[previousState]);
+                
+            for(int nextState = 0; nextState < numOfStates; nextState++){       
+               System.out.println(""+recordHolder3D[transitionNo][previousState][nextState]);
+            }
+        }
+      }
+      
   }
   
     

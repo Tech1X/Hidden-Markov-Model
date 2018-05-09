@@ -68,6 +68,7 @@ public class HMM {
     
    Double[][][]  recordHolder3D = new Double[numOfObservations][numOfStates][numOfStates];
    
+  // ~ Maroof Ali	
   void forwardAlgo(String input){
     
     initializeRecoldHoler3D();
